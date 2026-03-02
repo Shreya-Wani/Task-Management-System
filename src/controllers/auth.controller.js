@@ -8,6 +8,7 @@ import {
     generateAccessToken,
     generateRefreshToken,
 } from "../utils/generateTokens.js";
+import jwt from "jsonwebtoken";
 
 //register User
 export const register = asyncHandler(async (req, res) => {
@@ -85,13 +86,52 @@ export const login = asyncHandler(async (req, res) => {
     };
 
     return res.status(200)
-    .cookie("accessToken", accessToken, {
-        ...options,
-        maxAge: 15 * 60 * 1000, //15 min
-    })
-    .cookie("refreshToken", refreshToken, {
-      ...options,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    })
-    .json(new ApiResponse(200, user, "Login successful"));
+        .cookie("accessToken", accessToken, {
+            ...options,
+            maxAge: 15 * 60 * 1000, //15 min
+        })
+        .cookie("refreshToken", refreshToken, {
+            ...options,
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        })
+        .json(new ApiResponse(200, user, "Login successful"));
+});
+
+//refreshToken
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies.refreshToken;
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "Refresh token missing");
+    }
+
+    const decoded = jwt.verify(
+        incomingRefreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+    );
+
+    const user = await User.findById(decoded._id);
+
+    if (!user) {
+        throw new ApiError(401, "Invalid refresh token");
+    }
+
+    if (user.refreshToken !== incomingRefreshToken) {
+        throw new ApiError(401, "Refresh token expired or reused");
+    }
+
+    const newAccessToken = generateAccessToken(user);
+
+    const options = {
+        httpOnly: true,
+        secure: false,
+    };
+
+    return res
+        .status(200)
+        .cookie("accessToken", newAccessToken, {
+            ...options,
+            maxAge: 15 * 60 * 1000,
+        })
+        .json(new ApiResponse(200, {}, "Access token refreshed"));
 });
