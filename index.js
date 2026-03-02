@@ -10,6 +10,8 @@ import authRoutes from "./src/routes/auth.routes.js";
 // import userRoutes from "./src/routes/user.routes.js";
 // import taskRoutes from "./src/routes/task.routes.js";
 
+import cookieParser from "cookie-parser";
+
 dotenv.config();
 
 const app = express();
@@ -18,6 +20,7 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api/v1/auth", authRoutes);
 // app.use("/api/v1/company", companyRoutes);

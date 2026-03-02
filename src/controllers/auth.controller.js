@@ -5,8 +5,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import {
-  generateAccessToken,
-  generateRefreshToken,
+    generateAccessToken,
+    generateRefreshToken,
 } from "../utils/generateTokens.js";
 
 //register User
@@ -48,4 +48,50 @@ export const register = asyncHandler(async (req, res) => {
     return res
         .status(201)
         .json(new ApiResponse(201, user, "User registered successfully"));
+});
+
+//login User
+
+export const login = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        throw new ApiError(400, "Email and password are required");
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(401, "Invalid credentials");
+    }
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    user.password = undefined;
+
+    const options = {
+        httpOnly: true,
+        secure: false,
+    };
+
+    return res.status(200)
+    .cookie("accessToken", accessToken, {
+        ...options,
+        maxAge: 15 * 60 * 1000, //15 min
+    })
+    .cookie("refreshToken", refreshToken, {
+      ...options,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+    .json(new ApiResponse(200, user, "Login successful"));
 });
