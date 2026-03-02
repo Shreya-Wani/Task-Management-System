@@ -6,9 +6,9 @@ import { connectDB } from "./src/db/index.js";
 import errorHandler from "./src/middlewares/error.middleware.js";
 
 import authRoutes from "./src/routes/auth.routes.js";
-import companyRoutes from "./src/routes/company.routes.js";
-import userRoutes from "./src/routes/user.routes.js";
-import taskRoutes from "./src/routes/task.routes.js";
+// import companyRoutes from "./src/routes/company.routes.js";
+// import userRoutes from "./src/routes/user.routes.js";
+// import taskRoutes from "./src/routes/task.routes.js";
 
 dotenv.config();
 
@@ -20,9 +20,9 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/company", companyRoutes);
-app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/tasks", taskRoutes);
+// app.use("/api/v1/company", companyRoutes);
+// app.use("/api/v1/users", userRoutes);
+// app.use("/api/v1/tasks", taskRoutes);
 
 app.use(errorHandler);
 
