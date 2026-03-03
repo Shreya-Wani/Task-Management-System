@@ -12,7 +12,8 @@ const validate = (schema, property = "body") => {
             return next(new ApiError(400, "Validation Error", errors));
         }
 
-        req[property] = value;
+        Object.assign(req[property], value);
+        
         next();
     };
 };

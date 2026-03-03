@@ -7,12 +7,13 @@ import {
     createUserSchema,
     updateUserSchema,
 } from "../validations/user.validation.js";
+import { paginationSchema } from "../validations/common.validation.js";
 
 const router = express.Router();
 
 router.post("/admin", verifyJWT, restrictTo("superAdmin"), createAdmin);
 router.post("/", verifyJWT, restrictTo("admin"), validate(createUserSchema), createUser);
-router.get("/", verifyJWT, restrictTo("superAdmin", "admin"), getUsers);
+router.get("/", verifyJWT, restrictTo("superAdmin", "admin"), validate(paginationSchema, "query"), getUsers);
 router.get("/:id", verifyJWT, restrictTo("superAdmin", "admin", "user"), getUserById);
 router.patch("/:id", verifyJWT, restrictTo("superAdmin", "admin", "user"), validate(updateUserSchema), updateUser);
 router.delete("/:id", verifyJWT, restrictTo("superAdmin", "admin", "user"), deleteUser);

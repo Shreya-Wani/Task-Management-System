@@ -78,20 +78,33 @@ export const createUser = asyncHandler(async (req, res) => {
 
 //get users ( Admin can only see users of their company + SuperAdmin can see all users )
 export const getUsers = asyncHandler(async (req, res) => {
-    let users;
+    const { page, limit, sortBy = "createdAt", order } = req.query;
 
-    if (req.user.role === "superAdmin") {
-        users = await User.find({ isDeleted: false }).select("-password -refreshToken");
-    } else {
-        users = await User.find({
-            companyId: req.user.companyId,
-            isDeleted: false,
-        }).select("-password -refreshToken");
+    const skip = (page - 1) * limit;
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    let filter = { isDeleted: false };
+
+    if (req.user.role === "admin") {
+        filter.companyId = req.user.companyId;
     }
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, users, "Users fetched successfully"));
+    const users = await User.find(filter)
+        .select("-password -refreshToken")
+        .sort({ [sortBy]: sortOrder })
+        .skip(skip)
+        .limit(limit);
+
+    const total = await User.countDocuments(filter);
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+            users,
+        }, "Users fetched successfully")
+    );
 });
 
 // get user by id

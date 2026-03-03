@@ -29,11 +29,29 @@ export const createCompany = asyncHandler(async (req, res) => {
 
 //get all companies
 export const getAllCompanies = asyncHandler(async (req, res) => {
-    const companies = await Company.find({ isDeleted: false }).sort({ createdAt: -1 });
+    const { page, limit, sortBy = "createdAt", order } = req.query;
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, companies, "Companies fetched successfully"))
+    const skip = (page - 1) * limit;
+
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    const filter = { isDeleted: false };
+
+    const companies = await Company.find(filter)
+        .sort({ [sortBy]: sortOrder })
+        .skip(skip)
+        .limit(limit);
+
+    const total = await Company.countDocuments(filter);
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+            companies,
+        }, "Companies fetched successfully")
+    );
 });
 
 //get company by id
@@ -93,20 +111,20 @@ export const updateCompany = asyncHandler(async (req, res) => {
 export const deleteCompany = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-  const company = await Company.findById(id);
+    const company = await Company.findById(id);
 
-  if (!company) {
-    throw new ApiError(404, "Company not found");
-  }
+    if (!company) {
+        throw new ApiError(404, "Company not found");
+    }
 
-  if (company.isDeleted) {
-    throw new ApiError(400, "Company already deleted");
-  }
+    if (company.isDeleted) {
+        throw new ApiError(400, "Company already deleted");
+    }
 
-  company.isDeleted = true;
-  await company.save();
+    company.isDeleted = true;
+    await company.save();
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Company deleted successfully"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Company deleted successfully"));
 });
