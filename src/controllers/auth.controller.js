@@ -60,7 +60,7 @@ export const login = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Email and password are required");
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email, isDeleted: false });
 
     if (!user) {
         throw new ApiError(404, "User not found");

@@ -81,16 +81,50 @@ export const getUsers = asyncHandler(async (req, res) => {
     let users;
 
     if (req.user.role === "superAdmin") {
-        users = await User.find().select("-password -refreshToken");
+        users = await User.find({ isDeleted: false }).select("-password -refreshToken");
     } else {
         users = await User.find({
             companyId: req.user.companyId,
+            isDeleted: false,
         }).select("-password -refreshToken");
     }
 
     return res
         .status(200)
         .json(new ApiResponse(200, users, "Users fetched successfully"));
+});
+
+// get user by id
+export const getUserById = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const user = await User.findOne({
+        _id: id,
+        isDeleted: false,
+    }).select("-password -refreshToken");
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    //user can only see their profile
+    if (req.user.role === "user") {
+        if (req.user._id.toString() !== id) {
+            throw new ApiError(403, "You can only view your own profile");
+        }
+    }
+
+    //admin can only see users of their company
+    if (req.user.role === "admin") {
+        if (user.companyId?.toString() !== req.user.companyId?.toString()) {
+            throw new ApiError(403, "Cannot access user from another company");
+        }
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "User fetched successfully"));
+
 });
 
 //update user ( Admin can only update users of their company + SuperAdmin can update all users )
@@ -142,4 +176,40 @@ export const updateUser = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .json(new ApiResponse(200, user, "User updated successfully"));
-})
+});
+
+// Delete user ( Admin can only delete users of their company + SuperAdmin can delete all users )
+export const deleteUser = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+
+    if (!user || user.isDeleted) {
+        throw new ApiError(404, "User not found");
+    }
+
+    // user can delete only their profile
+    if (req.user.role === "user") {
+        if (req.user._id.toString() !== id.toString()) {
+            throw new ApiError(403, "You can only delete your own profile");
+        }
+    }
+
+    // admin can delete only users of their company
+    if (req.user.role === "admin") {
+        if (user.companyId?.toString() !== req.user.companyId?.toString()) {
+            throw new ApiError(403, "Cannot delete user from another company");
+        }
+
+        if (user.role === "superAdmin") {
+            throw new ApiError(403, "Cannot delete super admin");
+        }
+    }
+
+    user.isDeleted = true;
+    await user.save();
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, null, "User deleted successfully"));
+});

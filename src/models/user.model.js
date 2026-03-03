@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema(
         refreshToken: {
             type: String,
         },
+        isDeleted: {
+            type: Boolean,
+            default: false
+        },
     },
     { timestamps: true }
 );
