@@ -66,6 +66,14 @@ export const login = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User not found");
     }
 
+    if (user.companyId) {
+        const company = await Company.findById(user.companyId);
+
+        if (!company || company.isDeleted) {
+            throw new ApiError(403, "Company is deactivated");
+        }
+    }
+
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
     if (!isPasswordCorrect) {
@@ -135,3 +143,24 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         })
         .json(new ApiResponse(200, {}, "Access token refreshed"));
 });
+
+//logout
+export const logout = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+
+    await User.findByIdAndUpdate(userId, {
+        $unset: { refreshToken: 1 },
+    });
+
+    const options = {
+        httpOnly: true,
+        secure: false,
+    };
+
+    return res
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(new ApiResponse(200, {}, "Logged out successfully"));
+});
+
