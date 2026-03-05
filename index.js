@@ -8,6 +8,7 @@ import errorHandler from "./src/middlewares/error.middleware.js";
 import authRoutes from "./src/routes/auth.routes.js";
 import companyRoutes from "./src/routes/company.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
+import planRoutes from "./src/routes/plan.routes.js";
 // import projectRoutes from "./src/routes/project.routes.js";
 // import taskRoutes from "./src/routes/task.routes.js";
 
@@ -26,6 +27,7 @@ app.use(cookieParser());
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/companies", companyRoutes);
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/plans", planRoutes);
 // app.use("/api/v1/projects", projectRoutes);
 // app.use("/api/v1/tasks", taskRoutes);
 
