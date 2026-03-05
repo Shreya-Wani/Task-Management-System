@@ -17,6 +17,13 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        loginOTP: {
+            type: String
+        },
+
+        loginOTPExpires: {
+            type: Date
+        },
         role: {
             type: String,
             enum: ["superAdmin", "admin", "user"],

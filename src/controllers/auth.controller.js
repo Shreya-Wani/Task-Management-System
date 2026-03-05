@@ -9,42 +9,17 @@ import {
     generateRefreshToken,
 } from "../utils/generateTokens.js";
 import jwt from "jsonwebtoken";
+import {
+    registerService,
+    loginService,
+    refreshAccessTokenService,
+    logoutService,
+    verifyLoginOTPService
+} from "../services/auth.service.js";
 
 //register User
 export const register = asyncHandler(async (req, res) => {
-    const { name, email, password, role, companyId } = req.body;
-
-    if (!name || !email || !password) {
-        throw new ApiError(400, "All fields are required");
-    }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-        throw new ApiError(400, "User already exists");
-    }
-
-    if (role !== "superAdmin") {
-        if (!companyId) {
-            throw new ApiError(400, "Company ID is required");
-        }
-
-        const companyExists = await Company.findById(companyId);
-        if (!companyExists) {
-            throw new ApiError(404, "Invalid Company ID");
-        }
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        role,
-        companyId: role === "superAdmin" ? null : companyId,
-    });
-
-    user.password = undefined;
+    const user = await registerService(req.body);
 
     return res
         .status(201)
@@ -52,83 +27,21 @@ export const register = asyncHandler(async (req, res) => {
 });
 
 //login User
-
 export const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-        throw new ApiError(400, "Email and password are required");
-    }
+    const result = await loginService(email, password);
 
-    const user = await User.findOne({ email, isDeleted: false });
-
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
-
-    if (user.companyId) {
-        const company = await Company.findById(user.companyId);
-
-        if (!company || company.isDeleted) {
-            throw new ApiError(403, "Company is deactivated");
-        }
-    }
-
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordCorrect) {
-        throw new ApiError(401, "Invalid credentials");
-    }
-
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
-
-    user.password = undefined;
-
-    const options = {
-        httpOnly: true,
-        secure: false,
-    };
-
-    return res.status(200)
-        .cookie("accessToken", accessToken, {
-            ...options,
-            maxAge: 15 * 60 * 1000, //15 min
-        })
-        .cookie("refreshToken", refreshToken, {
-            ...options,
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        })
-        .json(new ApiResponse(200, user, "Login successful"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, result, "OTP sent successfully"));
 });
 
 //refreshToken
 export const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken;
 
-    if (!incomingRefreshToken) {
-        throw new ApiError(401, "Refresh token missing");
-    }
-
-    const decoded = jwt.verify(
-        incomingRefreshToken,
-        process.env.REFRESH_TOKEN_SECRET
-    );
-
-    const user = await User.findById(decoded._id);
-
-    if (!user) {
-        throw new ApiError(401, "Invalid refresh token");
-    }
-
-    if (user.refreshToken !== incomingRefreshToken) {
-        throw new ApiError(401, "Refresh token expired or reused");
-    }
-
-    const newAccessToken = generateAccessToken(user);
+    const newAccessToken = await refreshAccessTokenService(incomingRefreshToken);
 
     const options = {
         httpOnly: true,
@@ -148,9 +61,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 export const logout = asyncHandler(async (req, res) => {
     const userId = req.user._id;
 
-    await User.findByIdAndUpdate(userId, {
-        $unset: { refreshToken: 1 },
-    });
+    await logoutService(userId);
 
     const options = {
         httpOnly: true,
@@ -164,3 +75,29 @@ export const logout = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "Logged out successfully"));
 });
 
+//verifyLoginOTP
+export const verifyLoginOTP = asyncHandler(async (req, res) => {
+
+    const { email, otp } = req.body;
+
+    const { user, accessToken, refreshToken } =
+        await verifyLoginOTPService(email, otp);
+
+    const options = {
+        httpOnly: true,
+        secure: false
+    };
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, {
+            ...options,
+            maxAge: 15 * 60 * 1000
+        })
+        .cookie("refreshToken", refreshToken, {
+            ...options,
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
+        .json(new ApiResponse(200, user, "Login successful"));
+
+});
