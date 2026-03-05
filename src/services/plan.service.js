@@ -20,3 +20,17 @@ export const getAllPlansService = async () => {
 
     return plans;
 }
+
+export const updatePlanService = async (planId, data) => {
+    const plan = await Plan.findById(planId);
+
+    if (!plan) {
+        throw new ApiError(404, 'Plan not found');
+    }
+
+    Object.assign(plan, data);
+
+    await plan.save();
+
+    return plan;
+}
