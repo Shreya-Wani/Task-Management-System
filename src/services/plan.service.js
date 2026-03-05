@@ -14,3 +14,9 @@ export const createPlanService = async (data) => {
     return plan;
 }
 
+export const getAllPlansService = async () => {
+
+    const plans = await Plan.find({ isActive: true });
+
+    return plans;
+}
