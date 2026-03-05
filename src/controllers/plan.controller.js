@@ -1,4 +1,4 @@
-import { createPlanService, getAllPlansService, updatePlanService } from "../services/plan.service.js";
+import { createPlanService, getAllPlansService, updatePlanService, deletePlanService } from "../services/plan.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
@@ -27,3 +27,11 @@ export const updatePlan = asyncHandler ( async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, plan, "Plan updated successfully"));
 });
+
+export const disablePlan = asyncHandler (async (req, res) => {
+    const plan = await deletePlanService(req.params.planId);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, plan, "Plan disabled successfully"));
+})

@@ -34,3 +34,18 @@ export const updatePlanService = async (planId, data) => {
 
     return plan;
 }
+
+export const deletePlanService = async (planId) => {
+
+    const plan = await Plan.findById(planId);
+
+    if (!plan) {
+        throw new ApiError(404, 'Plan not found');
+    }
+
+    plan.isActive = false;
+
+    await plan.save();
+
+    return plan;
+}
