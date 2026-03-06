@@ -2,6 +2,7 @@ import Task from "../models/task.model.js";
 import ApiError from "../utils/ApiError.js";
 import Project from "../models/project.model.js";
 import TaskHistory from "../models/taskhistory.model.js";
+import TaskComment from "../models/taskComment.model.js";
 
 export const createTaskService = async (data, adminUser) => {
     const { title, description, assignedTo, reportTo, priority, projectId } = data;
@@ -71,4 +72,24 @@ export const updateTaskStatusService = async (taskId, status, user) => {
     });
 
     return task;
+};
+
+export const addTaskCommentService = async (taskId, comment, user) => {
+    const task = await Task.findById(taskId);
+
+    if (!task || task.isDeleted) {
+        throw new ApiError(404, "Task not found");
+    }
+
+    if (task.companyId.toString() !== user.companyId.toString()) {
+        throw new ApiError(403, "Unauthorized access to task");
+    }
+
+    const newComment = await TaskComment.create({
+        taskId,
+        comment,
+        createdBy: user._id
+    });
+
+    return newComment;
 };
