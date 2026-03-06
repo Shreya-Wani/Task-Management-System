@@ -16,8 +16,15 @@ export const createTaskService = async (data, adminUser) => {
         throw new ApiError(403, "Unauthorized project access");
     }
 
+    const taskCount = await Task.countDocuments({
+        projectId: projectId,
+        isDeleted: false
+    });
+
+    const taskId = `TMS-${taskCount + 1}`;
+
     const task = await Task.create({
-        taskId: "TEMP",
+        taskId,
         title,
         description,
         assignedTo,
