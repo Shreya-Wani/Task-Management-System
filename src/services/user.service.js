@@ -31,7 +31,8 @@ export const createAdminService = async (data) => {
         email,
         password: hashedPassword,
         role: "admin",
-        companyId,
+        companyId: company._id,
+        status: "inactive"
     });
 
     return admin;
@@ -50,7 +51,7 @@ export const createUserService = async (data, adminUser) => {
     //get company
     const company = await Company.findById(adminUser.companyId);
 
-     if (!company) {
+    if (!company) {
         throw new ApiError(404, "Company not found");
     }
 
@@ -78,6 +79,7 @@ export const createUserService = async (data, adminUser) => {
         password: hashedPassword,
         role: "user",
         companyId: adminUser.companyId,
+        status: "active"
     });
 
     return user;
@@ -114,28 +116,28 @@ export const getUsersService = async (query, currentUser) => {
 
 //get users by id 
 export const getUserByIdService = async (id, currentUser) => {
-  const user = await User.findOne({
-    _id: id,
-    isDeleted: false,
-  }).select("-password -refreshToken");
+    const user = await User.findOne({
+        _id: id,
+        isDeleted: false,
+    }).select("-password -refreshToken");
 
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  if (currentUser.role === "user") {
-    if (currentUser._id.toString() !== id) {
-      throw new ApiError(403, "You can only view your own profile");
+    if (!user) {
+        throw new ApiError(404, "User not found");
     }
-  }
 
-  if (currentUser.role === "admin") {
-    if (user.companyId?.toString() !== currentUser.companyId?.toString()) {
-      throw new ApiError(403, "Cannot access user from another company");
+    if (currentUser.role === "user") {
+        if (currentUser._id.toString() !== id) {
+            throw new ApiError(403, "You can only view your own profile");
+        }
     }
-  }
 
-  return user;
+    if (currentUser.role === "admin") {
+        if (user.companyId?.toString() !== currentUser.companyId?.toString()) {
+            throw new ApiError(403, "Cannot access user from another company");
+        }
+    }
+
+    return user;
 };
 
 //update user

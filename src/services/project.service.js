@@ -71,3 +71,14 @@ export const assignUserToProjectService = async (projectId, userId, adminUser) =
 
     return project;
 };
+
+export const getMyProjectsService = async (user) => {
+    const projects = await Project.find({
+        assignedUsers: user._id,
+        isDeleted: false
+    })
+        .populate("createdBy", "name email")
+        .populate("assignedUsers", "name email");
+
+    return projects;
+};
