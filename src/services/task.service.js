@@ -36,3 +36,22 @@ export const createTaskService = async (data, adminUser) => {
 
     return task;
 }
+
+export const updateTaskStatusService = async (taskId, status, user) => {
+
+    const task = await Task.findById(taskId);
+
+    if (!task || task.isDeleted) {
+        throw new ApiError(404, "Task not found");
+    }
+
+    if (task.companyId.toString() !== user.companyId.toString()) {
+        throw new ApiError(403, "Unauthorized access to task");
+    }
+
+    task.status = status;
+
+    await task.save();
+
+    return task;
+};
