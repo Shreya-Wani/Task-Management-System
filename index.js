@@ -11,7 +11,7 @@ import companyRoutes from "./src/routes/company.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
 import planRoutes from "./src/routes/plan.routes.js";
 import webhookRoutes from "./src/routes/webhook.routes.js";
-// import projectRoutes from "./src/routes/project.routes.js";
+import projectRoutes from "./src/routes/project.routes.js";
 // import taskRoutes from "./src/routes/task.routes.js";
 
 import cookieParser from "cookie-parser";
@@ -37,7 +37,7 @@ app.use("/api/v1/companies", companyRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/plans", planRoutes);
 app.use("/api/webhooks", webhookRoutes);
-// app.use("/api/v1/projects", projectRoutes);
+app.use("/api/v1/projects", projectRoutes);
 // app.use("/api/v1/tasks", taskRoutes);
 
 app.use(errorHandler);
