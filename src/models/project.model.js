@@ -1,35 +1,41 @@
 import mongoose from "mongoose";
 
 const projectSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    {
+        name: {
+            type: String,
+            required: true,
+            trim: true,
+        },
 
-    description: {
-      type: String,
-    },
+        description: {
+            type: String,
+        },
 
-    companyId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
-      required: true,
-    },
+        companyId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Company",
+            required: true,
+        },
 
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+        assignedUsers: {
+            type: [mongoose.Schema.Types.ObjectId],
+            ref: "User",
+            default: []
+        },
 
-    isDeleted: {
-      type: Boolean,
-      default: false,
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
     },
-  },
-  { timestamps: true }
+    { timestamps: true }
 );
 
 export default mongoose.model("Project", projectSchema);
