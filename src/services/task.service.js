@@ -1,6 +1,7 @@
 import Task from "../models/task.model.js";
 import ApiError from "../utils/ApiError.js";
 import Project from "../models/project.model.js";
+import TaskHistory from "../models/taskhistory.model.js";
 
 export const createTaskService = async (data, adminUser) => {
     const { title, description, assignedTo, reportTo, priority, projectId } = data;
@@ -34,6 +35,12 @@ export const createTaskService = async (data, adminUser) => {
         companyId: adminUser.companyId,
     });
 
+    await TaskHistory.create({
+        taskId: task._id,
+        action: "task_created",
+        performedBy: adminUser._id
+    });
+
     return task;
 }
 
@@ -49,9 +56,19 @@ export const updateTaskStatusService = async (taskId, status, user) => {
         throw new ApiError(403, "Unauthorized access to task");
     }
 
+    const oldStatus = task.status;
+
     task.status = status;
 
     await task.save();
+
+    await TaskHistory.create({
+        taskId: task._id,
+        action: "status_updated",
+        performedBy: user._id,
+        oldValue: oldStatus,
+        newValue: status
+    });
 
     return task;
 };
