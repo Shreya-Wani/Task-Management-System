@@ -9,6 +9,7 @@ import {
 import jwt from "jsonwebtoken";
 import { generateOTP } from "../utils/generateOTP.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import company from "../models/company.model.js";
 
 export const registerService = async (data) => {
 
@@ -64,13 +65,14 @@ export const loginService = async (email, password) => {
         throw new ApiError(404, "User not found");
     }
 
-    if (user.companyId) {
+    if (user.status !== "active") {
+        throw new ApiError(403, "Account not activated. Complete payment first.");
+    }
 
-        const company = await Company.findById(user.companyId);
+    const company = await Company.findById(user.companyId);
 
-        if (!company || company.isDeleted) {
-            throw new ApiError(403, "Company is deactivated");
-        }
+    if (!company || !company.isActive) {
+        throw new ApiError(403, "Company is not active");
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
@@ -81,7 +83,7 @@ export const loginService = async (email, password) => {
 
     const otp = generateOTP();
     console.log("LOGIN OTP:", otp);
-    
+
     user.loginOTP = otp;
     user.loginOTPExpires = Date.now() + 5 * 60 * 1000;
 
