@@ -13,6 +13,7 @@ import planRoutes from "./src/routes/plan.routes.js";
 import webhookRoutes from "./src/routes/webhook.routes.js";
 import projectRoutes from "./src/routes/project.routes.js";
 import taskRoutes from "./src/routes/task.routes.js";
+import planExpiryCron from "./src/cron/planExpiry.cron.js";
 
 import cookieParser from "cookie-parser";
 
@@ -54,4 +55,5 @@ app.get("/payment-failed", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  planExpiryCron();
 });
