@@ -10,7 +10,7 @@ import {
 } from "../utils/generateTokens.js";
 import jwt from "jsonwebtoken";
 import {
-    registerService,
+    registerAdminService,
     loginService,
     refreshAccessTokenService,
     logoutService,
@@ -19,11 +19,11 @@ import {
 
 //register User
 export const register = asyncHandler(async (req, res) => {
-    const user = await registerService(req.body);
+    const result = await registerAdminService(req.body);
 
     return res
         .status(201)
-        .json(new ApiResponse(201, user, "User registered successfully"));
+        .json(new ApiResponse(201, result, "Registration successful. Complete payment to activate account."));
 });
 
 //login User

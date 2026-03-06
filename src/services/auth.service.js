@@ -10,12 +10,13 @@ import jwt from "jsonwebtoken";
 import { generateOTP } from "../utils/generateOTP.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import company from "../models/company.model.js";
+import Plan from "../models/plan.model.js";
 
-export const registerService = async (data) => {
+export const registerAdminService = async (data) => {
 
-    const { name, email, password, role, companyId } = data;
+    const { name, email, password, companyName, planId } = data;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !companyName || !planId) {
         throw new ApiError(400, "All fields are required");
     }
 
@@ -25,32 +26,41 @@ export const registerService = async (data) => {
         throw new ApiError(400, "User already exists");
     }
 
-    if (role !== "superAdmin") {
+    const plan = await Plan.findById(planId);
 
-        if (!companyId) {
-            throw new ApiError(400, "Company ID is required");
-        }
-
-        const companyExists = await Company.findById(companyId);
-
-        if (!companyExists) {
-            throw new ApiError(404, "Invalid Company ID");
-        }
+    if (!plan) {
+        throw new ApiError(404, "Invalid plan selected");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    //create admin
+    const admin = await User.create({
         name,
         email,
         password: hashedPassword,
-        role,
-        companyId: role === "superAdmin" ? null : companyId
+        role: "admin",
+        status: "inactive"
     });
 
-    user.password = undefined;
+    //create company with adminId
+    const company = await Company.create({
+        name: companyName,
+        adminId: admin._id,
+        planId: planId,
+        paymentStatus: "pending",
+        isActive: false
+    });
 
-    return user;
+    admin.companyId = company._id;
+    await admin.save();
+
+    admin.password = undefined;
+
+    return {
+        company,
+        admin
+    };
 };
 
 export const loginService = async (email, password) => {
