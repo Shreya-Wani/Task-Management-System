@@ -1,5 +1,6 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
 import cors from "cors";
 
 import { connectDB } from "./src/db/index.js";
@@ -13,8 +14,6 @@ import planRoutes from "./src/routes/plan.routes.js";
 // import taskRoutes from "./src/routes/task.routes.js";
 
 import cookieParser from "cookie-parser";
-
-dotenv.config();
 
 const app = express();
 
@@ -34,6 +33,14 @@ app.use("/api/v1/plans", planRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
+
+app.get("/payment-success", (req, res) => {
+  res.send("Payment successful");
+});
+
+app.get("/payment-failed", (req, res) => {
+  res.send("Payment failed");
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -9,8 +9,8 @@ import {
 import jwt from "jsonwebtoken";
 import { generateOTP } from "../utils/generateOTP.js";
 import { sendEmail } from "../utils/sendEmail.js";
-import company from "../models/company.model.js";
 import Plan from "../models/plan.model.js";
+import stripe from "../utils/stripe.js";
 
 export const registerAdminService = async (data) => {
 
@@ -52,6 +52,33 @@ export const registerAdminService = async (data) => {
         isActive: false
     });
 
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "payment",
+
+        line_items: [
+            {
+                price_data: {
+                    currency: "inr",
+                    product_data: {
+                        name: plan.name
+                    },
+                    unit_amount: plan.price * 100
+                },
+                quantity: 1
+            }
+        ],
+
+        success_url: "http://localhost:5000/payment-success",
+        cancel_url: "http://localhost:5000/payment-failed",
+
+        metadata: {
+            companyId: company._id.toString(),
+            adminId: admin._id.toString(),
+            planId: plan._id.toString()
+        }
+    });
+
     admin.companyId = company._id;
     await admin.save();
 
@@ -59,7 +86,8 @@ export const registerAdminService = async (data) => {
 
     return {
         company,
-        admin
+        admin,
+        checkout_url: session.url
     };
 };
 
