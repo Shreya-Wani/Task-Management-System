@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import Company from "../models/company.model.js";
 import bcrypt from "bcryptjs";
+import Plan from "../models/plan.model.js";
 import ApiError from "../utils/ApiError.js";
 import { Query } from "mongoose";
 
@@ -44,6 +45,29 @@ export const createUserService = async (data, adminUser) => {
 
     if (existingUser) {
         throw new ApiError(400, "User already exists");
+    }
+
+    //get company
+    const company = await Company.findById(adminUser.companyId);
+
+     if (!company) {
+        throw new ApiError(404, "Company not found");
+    }
+
+    //get company plan
+    const plan = await Plan.findById(company.planId);
+
+    const userCount = await User.countDocuments({
+        companyId: company._id,
+        role: "user",
+        isDeleted: false,
+    });
+
+    if (plan.maxUsers !== -1 && userCount >= plan.maxUsers) {
+        throw new ApiError(
+            403,
+            "User limit reached for your subscription plan"
+        );
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
