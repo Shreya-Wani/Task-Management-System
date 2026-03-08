@@ -3,7 +3,7 @@ import Company from "../models/company.model.js";
 import bcrypt from "bcryptjs";
 import Plan from "../models/plan.model.js";
 import ApiError from "../utils/ApiError.js";
-import { Query } from "mongoose";
+import { sendEmail } from "../utils/sendEmail.js";
 
 //create admin by superAdmin
 export const createAdminService = async (data) => {
@@ -82,6 +82,12 @@ export const createUserService = async (data, adminUser) => {
         status: "active"
     });
 
+    await sendEmail({
+        to: email,
+        subject: "Welcome to Task Management System",
+        text: `Hello ${name}, your account has been created successfully.`
+    });
+    
     return user;
 };
 

@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import Project from "../models/project.model.js";
 import TaskHistory from "../models/taskhistory.model.js";
 import TaskComment from "../models/taskComment.model.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 export const createTaskService = async (data, adminUser) => {
     const { title, description, assignedTo, reportTo, priority, projectId } = data;
@@ -34,6 +35,14 @@ export const createTaskService = async (data, adminUser) => {
         priority,
         projectId,
         companyId: adminUser.companyId,
+    });
+
+    const assignedUser = await User.findById(assignedTo);
+
+    await sendEmail({
+        to: assignedUser.email,
+        subject: "New Task Assigned",
+        text: `You have been assigned a new task: ${title}`
     });
 
     await TaskHistory.create({
