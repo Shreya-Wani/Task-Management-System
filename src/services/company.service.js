@@ -17,6 +17,7 @@ export const createCompanyService = async (data, userId) => {
         name,
         description,
         createdBy: userId,
+        isDeleted: false,
     });
 
     return company;
@@ -104,4 +105,15 @@ export const deleteCompanyService = async (id) => {
     await company.save();
 
     return true;
+};
+
+export const getMyCompanyService = async (user) => {
+
+    const company = await Company.findById(user.companyId);
+
+    if (!company || company.isDeleted) {
+        throw new ApiError(404, "Company not found");
+    }
+
+    return company;
 };

@@ -21,7 +21,7 @@ export const getAllCompanies = asyncHandler(async (req, res) => {
 
 //get company by id
 export const getCompanyById = asyncHandler(async (req, res) => {
-    const company = await getCompanyByIdService(req.params.id);
+    const company = await getCompanyByIdService(req.params.id, req.user);
 
     return res
         .status(200)
@@ -31,7 +31,8 @@ export const getCompanyById = asyncHandler(async (req, res) => {
 export const updateCompany = asyncHandler(async (req, res) => {
     const company = await updateCompanyService(
         req.params.id,
-        req.body
+        req.body,
+        req.user
     );
 
     return res
@@ -41,7 +42,7 @@ export const updateCompany = asyncHandler(async (req, res) => {
 
 //soft delete company
 export const deleteCompany = asyncHandler(async (req, res) => {
-    await deleteCompanyService(req.params.id);
+    await deleteCompanyService(req.params.id, req.user);
 
     return res
         .status(200)
