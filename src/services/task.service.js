@@ -144,3 +144,21 @@ export const addTaskCommentService = async (taskId, comment, user) => {
 
     return newComment;
 };
+
+export const getMyTasksService = async (user) => {
+
+    let query = {
+        companyId: user.companyId,
+        isDeleted: false
+    };
+
+    if (user.role === "user") {
+        query.assignedTo = user._id;
+    }
+
+    const tasks = await Task.find(query)
+        .populate("assignedTo", "name email")
+        .populate("projectId", "name");
+
+    return tasks;
+};
