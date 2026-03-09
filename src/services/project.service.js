@@ -3,6 +3,8 @@ import Company from "../models/company.model.js";
 import Plan from "../models/plan.model.js";
 import ApiError from "../utils/ApiError.js";
 import User from "../models/user.model.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { getIO } from "../utils/socket.js";
 
 export const createProjectService = async (data, adminUser) => {
 
@@ -39,13 +41,13 @@ export const createProjectService = async (data, adminUser) => {
 };
 
 export const assignUserToProjectService = async (projectId, userId, adminUser) => {
+
     const project = await Project.findById(projectId);
 
     if (!project || project.isDeleted) {
         throw new ApiError(404, "Project not found");
     }
 
-    // Ensure project belongs to same company
     if (project.companyId.toString() !== adminUser.companyId.toString()) {
         throw new ApiError(403, "Unauthorized access to this project");
     }
@@ -60,14 +62,27 @@ export const assignUserToProjectService = async (projectId, userId, adminUser) =
         throw new ApiError(403, "User does not belong to your company");
     }
 
-    // Prevent duplicate assignment
-    if (project.assignedUsers.includes(userId)) {
+    if (project.assignedUsers.some(u => u.toString() === userId)) {
         throw new ApiError(400, "User already assigned to this project");
     }
 
     project.assignedUsers.push(userId);
 
     await project.save();
+
+    await sendEmail({
+        to: user.email,
+        subject: "Project Assignment",
+        text: `You have been assigned to project: ${project.name}`
+    });
+
+    const io = getIO();
+
+    io.emit("project_assigned", {
+        projectId: project._id,
+        userId: user._id,
+        projectName: project.name
+    });
 
     return project;
 };
@@ -88,4 +103,41 @@ export const getMyProjectsService = async (user) => {
         .populate("assignedUsers", "name email");
 
     return projects;
+};
+
+export const updateProjectService = async (projectId, data, user) => {
+    const project = await Project.findById(projectId);
+
+    if (!project || project.isDeleted) {
+        throw new ApiError(404, "Project not found");
+    }
+
+    if (project.companyId.toString() !== user.companyId.toString()) {
+        throw new ApiError(403, "Unauthorized access to this project");
+    }
+
+    Object.assign(project, data);
+
+    await project.save();
+
+    return project;
+};
+
+export const deleteProjectService = async (projectId, user) => {
+
+    const project = await Project.findById(projectId);
+
+    if (!project || project.isDeleted) {
+        throw new ApiError(404, "Project not found");
+    }
+
+    if (project.companyId.toString() !== user.companyId.toString()) {
+        throw new ApiError(403, "Unauthorized access");
+    }
+
+    project.isDeleted = true;
+
+    await project.save();
+
+    return project;
 };
