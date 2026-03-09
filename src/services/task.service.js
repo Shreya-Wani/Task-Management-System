@@ -39,19 +39,18 @@ export const createTaskService = async (data, adminUser) => {
         companyId: adminUser.companyId,
     });
 
-    const io = getIO();
-
-    io.emit("task_assigned", {
-        message: "New task assigned",
-        taskId: task.taskId,
-        assignedTo
-    });
-
     const assignedUser = await User.findById(assignedTo);
 
     if (!assignedUser) {
         throw new ApiError(404, "Assigned user not found");
     };
+
+    const io = getIO();
+
+    io.to(task.assignedTo.toString()).emit("task_assigned", {
+        taskId: task.taskId,
+        title: task.title
+    });
 
     await sendEmail({
         to: assignedUser.email,
@@ -107,16 +106,18 @@ export const updateTaskStatusService = async (taskId, status, user) => {
     await sendEmail({
         to: assignedUser.email,
         subject: "Task Status Updated",
-        text: `Task Status Updated
-               Task: ${task.title}
-               New Status: ${status}
-               Updated By: ${user.name}
-               `
+        text: `
+Task Status Updated
+
+Task: ${task.title}
+New Status: ${status}
+Updated By: ${user.name}
+`
     });
 
     const io = getIO();
 
-    io.emit("task_status_updated", {
+    io.to(task.assignedTo.toString()).emit("task_status_updated", {
         taskId: task.taskId,
         status
     });
