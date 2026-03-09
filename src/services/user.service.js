@@ -5,7 +5,36 @@ import Plan from "../models/plan.model.js";
 import ApiError from "../utils/ApiError.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
-//create admin by superAdmin
+export const registerSuperAdminService = async (data) => {
+    const { name, email, password } = data;
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+        throw new ApiError(400, "User already exists");
+    }
+
+    // check if superAdmin already exists
+    const superAdminExists = await User.findOne({ role: "superAdmin" });
+
+    if (superAdminExists) {
+        throw new ApiError(403, "Super admin already registered");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const superAdmin = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        role: "superAdmin",
+        status: "active"
+    });
+
+    return superAdmin;
+};
+
+//create admin
 export const createAdminService = async (data) => {
     const { name, email, password, companyId } = data;
 

@@ -4,9 +4,20 @@ import bcrypt from "bcryptjs";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import { createAdminService, createUserService, getUsersService, getUserByIdService, updateUserService, deleteUserService } from "../services/user.service.js";
+import { registerSuperAdminService, createAdminService, createUserService, getUsersService, getUserByIdService, updateUserService, deleteUserService } from "../services/user.service.js";
 
-//admin creation by superAdmin
+//create super admin ( only one super admin allowed )
+export const registerSuperAdmin = asyncHandler(async (req, res) => {
+
+    const user = await registerSuperAdminService(req.body);
+
+    return res
+        .status(201)
+        .json(new ApiResponse(201, user, "Super admin registered successfully"));
+
+});
+
+//create admin
 export const createAdmin = asyncHandler(async (req, res) => {
     const admin = await createAdminService(req.body);
 
