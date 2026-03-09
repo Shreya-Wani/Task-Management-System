@@ -4,6 +4,8 @@ import Project from "../models/project.model.js";
 import TaskHistory from "../models/taskhistory.model.js";
 import TaskComment from "../models/taskComment.model.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import { getIO } from "../utils/socket.js";
+import User from "../models/user.model.js";
 
 export const createTaskService = async (data, adminUser) => {
     const { title, description, assignedTo, reportTo, priority, projectId } = data;
@@ -37,7 +39,19 @@ export const createTaskService = async (data, adminUser) => {
         companyId: adminUser.companyId,
     });
 
+    const io = getIO();
+
+    io.emit("task_assigned", {
+        message: "New task assigned",
+        taskId: task.taskId,
+        assignedTo
+    });
+
     const assignedUser = await User.findById(assignedTo);
+
+    if (!assignedUser) {
+        throw new ApiError(404, "Assigned user not found");
+    };
 
     await sendEmail({
         to: assignedUser.email,
@@ -66,6 +80,13 @@ export const updateTaskStatusService = async (taskId, status, user) => {
         throw new ApiError(403, "Unauthorized access to task");
     }
 
+    if (
+        user.role === "user" &&
+        task.assignedTo.toString() !== user._id.toString()
+    ) {
+        throw new ApiError(403, "You can only update your assigned tasks");
+    }
+
     const oldStatus = task.status;
 
     task.status = status;
@@ -74,10 +95,30 @@ export const updateTaskStatusService = async (taskId, status, user) => {
 
     await TaskHistory.create({
         taskId: task._id,
-        action: "status_updated",
-        performedBy: user._id,
+        action: "status_changed",
         oldValue: oldStatus,
-        newValue: status
+        newValue: status,
+        performedBy: user._id,
+        companyId: user.companyId
+    });
+
+    const assignedUser = await User.findById(task.assignedTo);
+
+    await sendEmail({
+        to: assignedUser.email,
+        subject: "Task Status Updated",
+        text: `Task Status Updated
+               Task: ${task.title}
+               New Status: ${status}
+               Updated By: ${user.name}
+               `
+    });
+
+    const io = getIO();
+
+    io.emit("task_status_updated", {
+        taskId: task.taskId,
+        status
     });
 
     return task;

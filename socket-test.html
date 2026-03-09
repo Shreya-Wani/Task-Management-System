@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket Test</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+<h2>Socket Test</h2>
+
+<script>
+  const socket = io("http://localhost:5000");
+
+  socket.on("connect", () => {
+    console.log("Connected:", socket.id);
+  });
+
+  socket.on("task_assigned", (data) => {
+    console.log("Task Assigned:", data);
+  });
+
+  socket.on("task_status_updated", (data) => {
+    console.log("Status Updated:", data);
+  });
+</script>
+
+</body>
+</html>
