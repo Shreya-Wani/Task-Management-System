@@ -107,11 +107,15 @@ export const loginService = async (email, password) => {
         throw new ApiError(403, "Account not activated. Complete payment first.");
     }
 
-    const company = await Company.findById(user.companyId);
+    if (user.role !== "superAdmin") {
 
-    if (!company || !company.isActive) {
-        throw new ApiError(403, "Company is not active");
-    }
+        const company = await Company.findById(user.companyId);
+
+        if (!company || !company.isActive) {
+            throw new ApiError(403, "Company is not active");
+        }
+
+    };
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
@@ -127,11 +131,11 @@ export const loginService = async (email, password) => {
 
     await user.save({ validateBeforeSave: false });
 
-    await sendEmail(
-        user.email,
-        "Login OTP",
-        `Your OTP for login is: ${otp}`
-    );
+    await sendEmail({
+        to: user.email,
+        subject: "Login OTP",
+        text: `Your OTP for login is: ${otp}`
+    });
 
     return {
         message: "OTP sent to your email"
