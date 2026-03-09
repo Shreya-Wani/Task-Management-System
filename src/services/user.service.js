@@ -82,12 +82,16 @@ export const createUserService = async (data, adminUser) => {
         status: "active"
     });
 
-    await sendEmail({
-        to: email,
-        subject: "Welcome to Task Management System",
-        text: `Hello ${name}, your account has been created successfully.`
-    });
-    
+    try {
+        await sendEmail({
+            to: email,
+            subject: "Welcome to Task Management System",
+            text: `Hello ${name}, your account has been created successfully.`
+        });
+    } catch (error) {
+        console.log("Email sending failed:", error.message);
+    }
+
     return user;
 };
 
