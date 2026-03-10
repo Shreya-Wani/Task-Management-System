@@ -6,6 +6,7 @@ import TaskComment from "../models/taskComment.model.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { getIO } from "../utils/socket.js";
 import User from "../models/user.model.js";
+import Company from "../models/company.model.js";
 
 export const createTaskService = async (data, adminUser) => {
     const { title, description, assignedTo, reportTo, priority, projectId } = data;
@@ -132,8 +133,16 @@ export const addTaskCommentService = async (taskId, comment, user) => {
         throw new ApiError(404, "Task not found");
     }
 
-    if (task.companyId.toString() !== user.companyId.toString()) {
-        throw new ApiError(403, "Unauthorized access to task");
+    if (user.role === "user") {
+        if (task.assignedTo.toString() !== user._id.toString()) {
+            throw new ApiError(403, "You can only comment on your assigned tasks");
+        }
+    }
+
+    if (user.role === "admin") {
+        if (task.companyId.toString() !== user.companyId.toString()) {
+            throw new ApiError(403, "Unauthorized access to this task");
+        }
     }
 
     const newComment = await TaskComment.create({
