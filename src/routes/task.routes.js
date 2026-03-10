@@ -1,7 +1,7 @@
 import express from "express";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import restrictTo from "../middlewares/role.middleware.js";
-import { createTask, updateTaskStatus, addTaskComment, getTaskComments, getMyTasks } from "../controllers/task.controller.js";
+import { createTask, updateTaskStatus, addTaskComment, getTaskComments, getMyTasks, updateTask } from "../controllers/task.controller.js";
 
 const router = express.Router();
 
@@ -10,5 +10,6 @@ router.patch("/:taskId/status", verifyJWT, updateTaskStatus);
 router.post("/:taskId/comments", verifyJWT, addTaskComment);
 router.get("/:taskId/comments", verifyJWT, getTaskComments);
 router.get("/", verifyJWT, getMyTasks);
+router.patch("/:taskId", verifyJWT, updateTask);
 
 export default router;

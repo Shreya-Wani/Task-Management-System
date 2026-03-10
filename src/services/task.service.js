@@ -195,3 +195,29 @@ export const getMyTasksService = async (user) => {
 
     return tasks;
 };
+
+export const updateTaskService = async (taskId, data, user) => {
+    const task = await Task.findById(taskId);
+
+    if (!task || task.isDeleted) {
+        throw new ApiError(404, "Task not found");
+    };
+
+    if (user.role === "user") {
+        if (task.assignedTo.toString() !== user._id.toString()) {
+            throw new ApiError(403, "You can only update your assigned tasks");
+        }
+    };
+
+    if (user.role === "admin") {
+        if (task.companyId.toString() !== user.companyId.toString()) {
+            throw new ApiError(403, "Unauthorized access to this task");
+        }
+    };
+
+    Object.assign(task, data);
+
+    await task.save();
+
+    return task;
+}
