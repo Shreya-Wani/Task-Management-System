@@ -6,12 +6,13 @@ import { createTask, updateTaskStatus, addTaskComment, getTaskComments, getMyTas
 const router = express.Router();
 
 router.post("/", verifyJWT, restrictTo("admin"), createTask);
+router.get("/project/:projectId", verifyJWT, restrictTo("admin"), getTasksByProject);
 router.patch("/:taskId/status",verifyJWT, restrictTo("admin", "user"), updateTaskStatus);
 router.post("/:taskId/comments", verifyJWT, restrictTo("admin", "user"), addTaskComment);
 router.get("/:taskId/comments", verifyJWT, restrictTo("admin", "user"), getTaskComments);
 router.get("/", verifyJWT, restrictTo("user"), getMyTasks);
 router.patch("/:taskId", verifyJWT,restrictTo("admin"), updateTask);
 router.delete("/:taskId", restrictTo("admin"), verifyJWT, deleteTask);
-router.get("/project/:projectId", verifyJWT, restrictTo("admin"), getTasksByProject);
+
 
 export default router;

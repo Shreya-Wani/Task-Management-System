@@ -178,22 +178,49 @@ export const getTaskCommentsService = async (taskId, user) => {
 
 };
 
-export const getMyTasksService = async (user) => {
+export const getMyTasksService = async (query, user) => {
 
-    let query = {
+    const {
+        page = 1,
+        limit = 10,
+        status,
+        priority,
+        sortBy = "createdAt",
+        order = "desc"
+    } = query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = {
         companyId: user.companyId,
         isDeleted: false
     };
 
     if (user.role === "user") {
-        query.assignedTo = user._id;
+        filter.assignedTo = user._id;
     }
 
-    const tasks = await Task.find(query)
-        .populate("assignedTo", "name email")
-        .populate("projectId", "name");
+    if (status) filter.status = status;
+    if (priority) filter.priority = priority;
 
-    return tasks;
+    const tasks = await Task.find(filter)
+        .populate("assignedTo", "name email")
+        .populate("reportTo", "name email")
+        .sort({ [sortBy]: order === "asc" ? 1 : -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const total = await Task.countDocuments(filter);
+
+    return {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+        tasks
+    }
 };
 
 export const updateTaskService = async (taskId, data, user) => {
