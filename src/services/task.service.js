@@ -246,3 +246,22 @@ export const deleteTaskService = async (taskId, user) => {
 
     return true;
 };
+
+export const getTasksByProjectService = async (projectId, user) => {
+    const project = await Project.findById(projectId);
+
+    if (!project || project.isDeleted) {
+        throw new ApiError(404, "Project not found");
+    };
+
+    if (project.companyId.toString() !== user.companyId.toString()){
+        throw new ApiError(403, "Unauthorized access to this project");
+    };
+
+    const tasks = await Task.find({ projectId, isDeleted: false })
+        .populate("assignedTo", "name email")
+        .populate("reportTo", "name email")
+        .sort({ createdAt: -1});
+
+    return tasks;
+}

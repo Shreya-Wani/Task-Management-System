@@ -1,7 +1,7 @@
 import express from "express";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import restrictTo from "../middlewares/role.middleware.js";
-import { createTask, updateTaskStatus, addTaskComment, getTaskComments, getMyTasks, updateTask, deleteTask } from "../controllers/task.controller.js";
+import { createTask, updateTaskStatus, addTaskComment, getTaskComments, getMyTasks, updateTask, deleteTask, getTasksByProject } from "../controllers/task.controller.js";
 
 const router = express.Router();
 
@@ -12,5 +12,6 @@ router.get("/:taskId/comments", verifyJWT, restrictTo("admin", "user"), getTaskC
 router.get("/", verifyJWT, restrictTo("user"), getMyTasks);
 router.patch("/:taskId", verifyJWT,restrictTo("admin"), updateTask);
 router.delete("/:taskId", restrictTo("admin"), verifyJWT, deleteTask);
+router.get("/project/:projectId", verifyJWT, restrictTo("admin"), getTasksByProject);
 
 export default router;
