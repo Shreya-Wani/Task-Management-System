@@ -221,3 +221,28 @@ export const updateTaskService = async (taskId, data, user) => {
 
     return task;
 }
+
+export const deleteTaskService = async (taskId, user) => {
+    const task = await Task.findById(taskId);
+
+    if (!task || task.isDeleted) {
+        throw new ApiError(404, "Task not found");
+    }
+
+    if (user.role === "user") {
+        if (task.assignedTo.toString() !== user._id.toString()) {
+            throw new ApiError(403, "You can only delete your assigned tasks");
+        }
+    };
+
+    if (user.role === "admin") {
+        if (task.companyId.toString() !== user.companyId.toString()) {
+            throw new ApiError(403, "Unauthorized access to this task");
+        }
+    };
+
+    task.isDeleted = true;
+    await task.save();
+
+    return true;
+};

@@ -1,15 +1,16 @@
 import express from "express";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import restrictTo from "../middlewares/role.middleware.js";
-import { createTask, updateTaskStatus, addTaskComment, getTaskComments, getMyTasks, updateTask } from "../controllers/task.controller.js";
+import { createTask, updateTaskStatus, addTaskComment, getTaskComments, getMyTasks, updateTask, deleteTask } from "../controllers/task.controller.js";
 
 const router = express.Router();
 
 router.post("/", verifyJWT, restrictTo("admin"), createTask);
-router.patch("/:taskId/status", verifyJWT, updateTaskStatus);
-router.post("/:taskId/comments", verifyJWT, addTaskComment);
-router.get("/:taskId/comments", verifyJWT, getTaskComments);
-router.get("/", verifyJWT, getMyTasks);
-router.patch("/:taskId", verifyJWT, updateTask);
+router.patch("/:taskId/status",verifyJWT, restrictTo("admin", "user"), updateTaskStatus);
+router.post("/:taskId/comments", verifyJWT, restrictTo("admin", "user"), addTaskComment);
+router.get("/:taskId/comments", verifyJWT, restrictTo("admin", "user"), getTaskComments);
+router.get("/", verifyJWT, restrictTo("user"), getMyTasks);
+router.patch("/:taskId", verifyJWT,restrictTo("admin"), updateTask);
+router.delete("/:taskId", restrictTo("admin"), verifyJWT, deleteTask);
 
 export default router;
