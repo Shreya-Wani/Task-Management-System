@@ -1,7 +1,9 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import { createCompanyService, getCompaniesService, getCompanyByIdService, updateCompanyService, deleteCompanyService } from "../services/company.service.js";
+import Company from "../models/company.model.js";
+import { createCompanyService, getCompaniesService, getCompanyByIdService, updateCompanyService, deleteCompanyService, getMyCompanyService } from "../services/company.service.js";
 
+//create company
 export const createCompany = asyncHandler(async (req, res) => {
     const company = await createCompanyService(req.body, req.user._id);
 
@@ -28,6 +30,7 @@ export const getCompanyById = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, company, "Company fetched successfully"));
 });
 
+//update company
 export const updateCompany = asyncHandler(async (req, res) => {
     const company = await updateCompanyService(
         req.params.id,
@@ -47,4 +50,14 @@ export const deleteCompany = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .json(new ApiResponse(200, {}, "Company deleted successfully"));
+});
+
+//get my company (for admin)
+export const getMyCompany = asyncHandler(async (req, res) => {
+
+    const company = await getMyCompanyService(req.user);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, company, "Company fetched successfully"));
 });

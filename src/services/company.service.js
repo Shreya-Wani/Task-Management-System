@@ -107,11 +107,18 @@ export const deleteCompanyService = async (id) => {
     return true;
 };
 
-export const getMyCompanyService = async (user) => {
+export const getMyCompanyService = async (currentUser) => {
 
-    const company = await Company.findById(user.companyId);
+    if (!currentUser.companyId) {
+        throw new ApiError(404, "User is not associated with any company");
+    }
 
-    if (!company || company.isDeleted) {
+    const company = await Company.findOne({
+        _id: currentUser.companyId,
+        isDeleted: false
+    });
+
+    if (!company) {
         throw new ApiError(404, "Company not found");
     }
 

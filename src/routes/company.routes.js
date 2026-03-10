@@ -9,7 +9,8 @@ import {
   getAllCompanies,
   getCompanyById,
   updateCompany,
-  deleteCompany
+  deleteCompany,
+  getMyCompany
 } from "../controllers/company.controller.js";
 
 import {
@@ -31,6 +32,13 @@ router.post(
   createCompany
 );
 
+//get my company (for admin)
+router.get(
+  "/me",
+  verifyJWT,
+  restrictTo("admin"),
+  getMyCompany
+);
 
 // SuperAdmin views all companies
 router.get(
@@ -41,7 +49,6 @@ router.get(
   getAllCompanies
 );
 
-
 // SuperAdmin get company
 router.get(
   "/:id",
@@ -49,7 +56,6 @@ router.get(
   restrictTo("superAdmin"),
   getCompanyById
 );
-
 
 // Admin update their company
 router.patch(
@@ -59,7 +65,6 @@ router.patch(
   validate(updateCompanySchema),
   updateCompany
 );
-
 
 // SuperAdmin delete company
 router.delete(
