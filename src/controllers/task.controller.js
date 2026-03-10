@@ -66,9 +66,9 @@ export const deleteTask = asyncHandler(async (req, res) => {
 export const getTasksByProject = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
 
-    const tasks = await getTasksByProjectService(projectId, req.user);
+    const tasks = await getTasksByProjectService(projectId, req.query, req.user);
 
     return res
         .status(200)
-        .json(new ApiResponse(200, tasks, "Tasks fetched successfully"));
+        .json(new ApiResponse(200, tasks, "Project Tasks fetched successfully"));
 })

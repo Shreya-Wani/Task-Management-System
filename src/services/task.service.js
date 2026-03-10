@@ -247,21 +247,51 @@ export const deleteTaskService = async (taskId, user) => {
     return true;
 };
 
-export const getTasksByProjectService = async (projectId, user) => {
+export const getTasksByProjectService = async (projectId, query, user) => {
     const project = await Project.findById(projectId);
 
     if (!project || project.isDeleted) {
         throw new ApiError(404, "Project not found");
     };
 
-    if (project.companyId.toString() !== user.companyId.toString()){
+    if (project.companyId.toString() !== user.companyId.toString()) {
         throw new ApiError(403, "Unauthorized access to this project");
     };
 
-    const tasks = await Task.find({ projectId, isDeleted: false })
+    const {
+        page = 1,
+        limit = 10,
+        status,
+        priority,
+        assignedTo,
+        sortBy = "createdAt",
+        order = "desc"
+    } = query;
+
+    const skip = (page - 1) * limit;
+
+    const filter = {
+        projectId,
+        isDeleted: false
+    }
+
+    if (status) filter.status = status;
+    if (priority) filter.priority = priority;
+    if (assignedTo) filter.assignedTo = assignedTo;
+
+    const tasks = await Task.find(filter)
         .populate("assignedTo", "name email")
         .populate("reportTo", "name email")
-        .sort({ createdAt: -1});
+        .sort({ [sortBy]: order === "asc" ? 1 : -1 })
+        .skip(skip)
+        .limit(limit);
 
-    return tasks;
+    const total = await Task.countDocuments(filter);
+
+    return {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+        tasks
+    }
 }
