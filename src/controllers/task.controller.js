@@ -1,4 +1,4 @@
-import { createTaskService, updateTaskStatusService, addTaskCommentService, getMyTasksService } from "../services/task.service.js";
+import { createTaskService, updateTaskStatusService, addTaskCommentService, getMyTasksService, getTaskCommentsService } from "../services/task.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
@@ -25,6 +25,14 @@ export const addTaskComment = asyncHandler(async (req, res) => {
     const newComment = await addTaskCommentService(taskId, comment, req.user);
 
     res.status(201).json(new ApiResponse(201, newComment, "Comment added successfully"));
+});
+
+export const getTaskComments = asyncHandler(async (req, res) => {
+    const { taskId } = req.params;
+    const comments = await getTaskCommentsService(taskId, req.user);
+
+    res.status(200).json(new ApiResponse(200, comments, "Comments fetched successfully"));
+
 });
 
 export const getMyTasks = asyncHandler(async (req, res) => {
