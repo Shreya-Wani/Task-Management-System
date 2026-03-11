@@ -239,7 +239,7 @@ export const getMyTasksService = async (query, user) => {
 
     return {
         total,
-        page,
+        page: pageNum,
         totalPages: Math.ceil(total / limit),
         tasks
     }
@@ -339,7 +339,7 @@ export const getTasksByProjectService = async (projectId, query, user) => {
 
     return {
         total,
-        page,
+        page: pageNum,
         totalPages: Math.ceil(total / limit),
         tasks
     }

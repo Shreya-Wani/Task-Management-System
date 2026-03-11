@@ -87,22 +87,44 @@ export const assignUserToProjectService = async (projectId, userId, adminUser) =
     return project;
 };
 
-export const getMyProjectsService = async (user) => {
+export const getMyProjectsService = async (query, user) => {
 
-    let query = {
+    const {
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        order = "desc"
+    } = query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const skip = ( pageNum - 1) * limitNum;
+
+    let filter = {
         companyId: user.companyId,
         isDeleted: false
     };
 
     if (user.role === "user") {
-        query.assignedUsers = user._id;
+        filter.assignedUsers = user._id;
     };
 
-    const projects = await Project.find(query)
+    const projects = await Project.find(filter)
         .populate("createdBy", "name email")
-        .populate("assignedUsers", "name email");
+        .populate("assignedUsers", "name email")
+        .sort({[sortBy]: order === "asc" ? 1 : -1})
+        .skip(skip)
+        .limit(limitNum);
 
-    return projects;
+    const total = await Project.countDocuments(filter);
+
+    return {
+        total,
+        page:pageNum,
+        totalPages: Math.ceil (total / limitNum),
+        projects 
+    };
 };
 
 export const updateProjectService = async (projectId, data, user) => {

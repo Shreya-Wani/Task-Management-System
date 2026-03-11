@@ -32,7 +32,7 @@ export const assignUserToProject = asyncHandler(async (req, res) => {
 
 export const getMyProjects = asyncHandler(async (req, res) => {
 
-  const projects = await getMyProjectsService(req.user);
+  const projects = await getMyProjectsService(req.query, req.user);
 
   res.status(200).json(
     new ApiResponse(200, projects, "Assigned projects fetched successfully")
