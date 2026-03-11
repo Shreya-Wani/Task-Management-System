@@ -5,6 +5,7 @@ import ApiError from "../utils/ApiError.js";
 import User from "../models/user.model.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { getIO } from "../utils/socket.js";
+import { getPagination } from "../utils/pagination.js";
 
 export const createProjectService = async (data, adminUser) => {
 
@@ -89,17 +90,7 @@ export const assignUserToProjectService = async (projectId, userId, adminUser) =
 
 export const getMyProjectsService = async (query, user) => {
 
-    const {
-        page = 1,
-        limit = 10,
-        sortBy = "createdAt",
-        order = "desc"
-    } = query;
-
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-
-    const skip = ( pageNum - 1) * limitNum;
+    const { page, limit, skip, sort} = getPagination(query)
 
     let filter = {
         companyId: user.companyId,
@@ -113,16 +104,16 @@ export const getMyProjectsService = async (query, user) => {
     const projects = await Project.find(filter)
         .populate("createdBy", "name email")
         .populate("assignedUsers", "name email")
-        .sort({[sortBy]: order === "asc" ? 1 : -1})
+        .sort(sort)
         .skip(skip)
-        .limit(limitNum);
+        .limit(limit);
 
     const total = await Project.countDocuments(filter);
 
     return {
         total,
-        page:pageNum,
-        totalPages: Math.ceil (total / limitNum),
+        page,
+        totalPages: Math.ceil (total / limit),
         projects 
     };
 };

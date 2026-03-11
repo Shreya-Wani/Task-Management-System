@@ -6,6 +6,7 @@ import TaskComment from "../models/taskComment.model.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { getIO } from "../utils/socket.js";
 import User from "../models/user.model.js";
+import { getPagination } from "../utils/pagination.js";
 
 export const createTaskService = async (data, adminUser) => {
     const { title, description, assignedTo, reportTo, priority, projectId } = data;
@@ -155,15 +156,7 @@ export const addTaskCommentService = async (taskId, comment, user) => {
 
 export const getTaskCommentsService = async (taskId, query, user) => {
 
-    const {
-        page = 1,
-        limit = 10,
-    } = query;
-
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-
-    const skip = (pageNum - 1) * limit;
+    const { page, limit, skip, sort } = getPagination(query);
 
     const task = await Task.findById(taskId);
 
@@ -185,36 +178,24 @@ export const getTaskCommentsService = async (taskId, query, user) => {
 
     const comments = await TaskComment.find({ taskId })
         .populate("createdBy", "name email")
-        .sort({ createdAt: -1 })
+        .sort(sort)
         .skip(skip)
-        .limit(limitNum);
+        .limit(limit);
 
     const total = await TaskComment.countDocuments({ taskId });
 
     return {
         total,
-        page: pageNum,
-        totalPages: Math.ceil(total / limitNum),
+        page,
+        totalPages: Math.ceil(total / limit),
         comments
     }
-
 };
 
 export const getMyTasksService = async (query, user) => {
 
-    const {
-        page = 1,
-        limit = 10,
-        status,
-        priority,
-        sortBy = "createdAt",
-        order = "desc"
-    } = query;
-
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-
-    const skip = (pageNum - 1) * limitNum;
+    const { page, limit, skip, sort} = getPagination(query);
+    const {status, priority} = query;
 
     const filter = {
         companyId: user.companyId,
@@ -231,7 +212,7 @@ export const getMyTasksService = async (query, user) => {
     const tasks = await Task.find(filter)
         .populate("assignedTo", "name email")
         .populate("reportTo", "name email")
-        .sort({ [sortBy]: order === "asc" ? 1 : -1 })
+        .sort(sort)
         .skip(skip)
         .limit(limit);
 
@@ -239,7 +220,7 @@ export const getMyTasksService = async (query, user) => {
 
     return {
         total,
-        page: pageNum,
+        page,
         totalPages: Math.ceil(total / limit),
         tasks
     }
@@ -307,17 +288,8 @@ export const getTasksByProjectService = async (projectId, query, user) => {
         throw new ApiError(403, "Unauthorized access to this project");
     };
 
-    const {
-        page = 1,
-        limit = 10,
-        status,
-        priority,
-        assignedTo,
-        sortBy = "createdAt",
-        order = "desc"
-    } = query;
-
-    const skip = (page - 1) * limit;
+    const { page, limit, skip, sort } = query;
+    const { status, priority, assignedTo } = query;
 
     const filter = {
         projectId,
@@ -331,7 +303,7 @@ export const getTasksByProjectService = async (projectId, query, user) => {
     const tasks = await Task.find(filter)
         .populate("assignedTo", "name email")
         .populate("reportTo", "name email")
-        .sort({ [sortBy]: order === "asc" ? 1 : -1 })
+        .sort(sort)
         .skip(skip)
         .limit(limit);
 
@@ -339,7 +311,7 @@ export const getTasksByProjectService = async (projectId, query, user) => {
 
     return {
         total,
-        page: pageNum,
+        page,
         totalPages: Math.ceil(total / limit),
         tasks
     }
