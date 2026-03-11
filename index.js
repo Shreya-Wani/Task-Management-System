@@ -17,6 +17,7 @@ import planRoutes from "./src/routes/plan.routes.js";
 import webhookRoutes from "./src/routes/webhook.routes.js";
 import projectRoutes from "./src/routes/project.routes.js";
 import taskRoutes from "./src/routes/task.routes.js";
+import dashboardRoutes from "./src/routes/dashboard.routes.js"
 
 import planExpiryCron from "./src/cron/planExpiry.cron.js";
 
@@ -43,6 +44,7 @@ app.use("/api/v1/plans", planRoutes);
 app.use("/api/webhooks", webhookRoutes);
 app.use("/api/v1/projects", projectRoutes);
 app.use("/api/v1/tasks", taskRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 
 app.use(errorHandler);
 
