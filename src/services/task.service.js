@@ -153,7 +153,18 @@ export const addTaskCommentService = async (taskId, comment, user) => {
     return newComment;
 };
 
-export const getTaskCommentsService = async (taskId, user) => {
+export const getTaskCommentsService = async (taskId, query, user) => {
+
+    const {
+        page = 1,
+        limit = 10,
+    } = query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const skip = (pageNum - 1) * limit;
+
     const task = await Task.findById(taskId);
 
     if (!task || task.isDeleted) {
@@ -172,9 +183,20 @@ export const getTaskCommentsService = async (taskId, user) => {
         }
     };
 
-    const comments = await TaskComment.find({ taskId }).populate("createdBy", "name email");
+    const comments = await TaskComment.find({ taskId })
+        .populate("createdBy", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum);
 
-    return comments;
+    const total = await TaskComment.countDocuments({ taskId });
+
+    return {
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum),
+        comments
+    }
 
 };
 

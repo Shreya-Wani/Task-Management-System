@@ -29,7 +29,7 @@ export const addTaskComment = asyncHandler(async (req, res) => {
 
 export const getTaskComments = asyncHandler(async (req, res) => {
     const { taskId } = req.params;
-    const comments = await getTaskCommentsService(taskId, req.user);
+    const comments = await getTaskCommentsService(taskId, req.query, req.user);
 
     res.status(200).json(new ApiResponse(200, comments, "Comments fetched successfully"));
 
