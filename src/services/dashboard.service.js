@@ -62,29 +62,57 @@ export const getAdminDashboardService = async (user) => {
 
 export const getSuperadminDashboardService = async () => {
 
+    // Total companies
     const totalCompanies = await Company.countDocuments({
         isDeleted: false
     });
 
-    const activeCompanies = await Company.countDocuments({
+    // Active companies with details
+    const activeCompanies = await Company.find({
         isDeleted: false,
         isActive: true
-    });
+    })
+    .populate({
+        path: "adminId",
+        select: "name email"
+    })
+    .populate({
+        path: "planId",
+        select: "name price duration"
+    })
+    .select("name paymentStatus isActive createdAt");
 
-    const expiredCompanies = await Company.countDocuments({
+    // Expired companies with details
+    const expiredCompanies = await Company.find({
         isDeleted: false,
-        inActive: false
-    });
+        isActive: false
+    })
+    .populate({
+        path: "adminId",
+        select: "name email"
+    })
+    .populate({
+        path: "planId",
+        select: "name price duration"
+    })
+    .select("name paymentStatus isActive createdAt");
 
-    const totalUsers = await User.countDocuments({
+    // Total users with details
+    const users = await User.find({
         role: "user",
         isDeleted: false
-    });
+    })
+    .select("name email companyId createdAt");
+
+    const totalUsers = users.length;
 
     return {
         totalCompanies,
+        activeCompaniesCount: activeCompanies.length,
+        expiredCompaniesCount: expiredCompanies.length,
+        totalUsers,
         activeCompanies,
         expiredCompanies,
-        totalUsers
-    }
-}
+        users
+    };
+};
