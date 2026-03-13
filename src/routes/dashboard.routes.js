@@ -2,6 +2,7 @@ import express from "express";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import restrictTo from "../middlewares/role.middleware.js";
 import { getAdminDashboard, getSuperAdminDashboard } from "../controllers/dashboard.controller.js";
+import checkSubscriptionPlan from "../middlewares/checkSubscription.middleware.js";
 
 const router = express.Router();
 
@@ -11,6 +12,7 @@ router.get(
   "/admin",
   verifyJWT,
   restrictTo("admin"),
+  checkSubscriptionPlan,
   getAdminDashboard
 );
 

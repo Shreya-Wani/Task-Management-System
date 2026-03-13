@@ -34,39 +34,6 @@ export const registerSuperAdminService = async (data) => {
     return superAdmin;
 };
 
-//create admin
-export const createAdminService = async (data) => {
-    const { name, email, password, companyId } = data;
-
-    const company = await Company.findOne({
-        _id: companyId,
-        isDeleted: false,
-    });
-
-    if (!company) {
-        throw new ApiError(404, "Company not found");
-    }
-
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-        throw new ApiError(400, "User already exists");
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const admin = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        role: "admin",
-        companyId: company._id,
-        status: "inactive"
-    });
-
-    return admin;
-};
-
 //create user by admin (in same company)
 export const createUserService = async (data, adminUser) => {
     const { name, email, password } = data;

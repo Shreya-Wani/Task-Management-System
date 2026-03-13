@@ -8,12 +8,12 @@ import {
     updateUserSchema,
 } from "../validations/user.validation.js";
 import { paginationSchema } from "../validations/common.validation.js";
+import checkSubscriptionPlan from "../middlewares/checkSubscription.middleware.js";
 
 const router = express.Router();
 
-router.post("/admin", verifyJWT, restrictTo("superAdmin"), createAdmin);
 router.post("/super-admin", registerSuperAdmin);
-router.post("/", verifyJWT, restrictTo("admin"), validate(createUserSchema), createUser);
+router.post("/", verifyJWT, restrictTo("admin"), validate(createUserSchema),checkSubscriptionPlan, createUser);
 router.get("/", verifyJWT, restrictTo("superAdmin", "admin"), validate(paginationSchema, "query"), getUsers);
 router.get("/:id", verifyJWT, restrictTo("superAdmin", "admin", "user"), getUserById);
 router.patch("/:id", verifyJWT, restrictTo("admin", "user"), validate(updateUserSchema), updateUser);
