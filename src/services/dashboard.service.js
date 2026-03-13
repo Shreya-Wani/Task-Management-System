@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import Project from "../models/project.model.js";
 import Task from "../models/task.model.js";
+import Company from "../models/company.model.js"
 
 export const getAdminDashboardService = async (user) => {
 
@@ -57,4 +58,33 @@ export const getAdminDashboardService = async (user) => {
         totalTasks,
         tasksStatusSummary: summary
     };
+}
+
+export const getSuperadminDashboardService = async () => {
+
+    const totalCompanies = await Company.countDocuments({
+        isDeleted: false
+    });
+
+    const activeCompanies = await Company.countDocuments({
+        isDeleted: false,
+        isActive: true
+    });
+
+    const expiredCompanies = await Company.countDocuments({
+        isDeleted: false,
+        inActive: false
+    });
+
+    const totalUsers = await User.countDocuments({
+        role: "user",
+        isDeleted: false
+    });
+
+    return {
+        totalCompanies,
+        activeCompanies,
+        expiredCompanies,
+        totalUsers
+    }
 }

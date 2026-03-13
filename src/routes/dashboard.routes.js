@@ -1,7 +1,7 @@
 import express from "express";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import restrictTo from "../middlewares/role.middleware.js";
-import { getAdminDashboard } from "../controllers/dashboard.controller.js";
+import { getAdminDashboard, getSuperAdminDashboard } from "../controllers/dashboard.controller.js";
 
 const router = express.Router();
 
@@ -13,5 +13,12 @@ router.get(
   restrictTo("admin"),
   getAdminDashboard
 );
+
+router.get(
+  "/superadmin",
+  verifyJWT,
+  restrictTo("superAdmin"),
+  getSuperAdminDashboard
+)
 
 export default router;
