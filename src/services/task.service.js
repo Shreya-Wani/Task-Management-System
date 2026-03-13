@@ -23,12 +23,18 @@ export const createTaskService = async (data, adminUser) => {
         throw new ApiError(403, "Unauthorized project access");
     }
 
+    const prefix = project.name
+        .split(" ")
+        .map(word => word[0])
+        .join("")
+        .toUpperCase();
+
     const taskCount = await Task.countDocuments({
         projectId: projectId,
         isDeleted: false
     });
 
-    const taskId = `TMS-${taskCount + 1}`;
+    const taskId = `${prefix}-${taskCount + 1}`;
 
     const task = await Task.create({
         taskId,
@@ -175,8 +181,8 @@ export const getTaskCommentsService = async (taskId, query, user) => {
 
 export const getMyTasksService = async (query, user) => {
 
-    const { page, limit, skip, sort} = getPagination(query);
-    const {status, priority} = query;
+    const { page, limit, skip, sort } = getPagination(query);
+    const { status, priority } = query;
 
     const filter = {
         companyId: user.companyId,

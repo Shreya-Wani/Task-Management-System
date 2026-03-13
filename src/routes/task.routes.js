@@ -11,7 +11,7 @@ router.get("/project/:projectId", verifyJWT, restrictTo("admin"), getTasksByProj
 router.patch("/:taskId/status",verifyJWT, restrictTo("admin", "user"), updateTaskStatus);
 router.post("/:taskId/comments", verifyJWT, restrictTo("admin", "user"),checkSubscriptionPlan, addTaskComment);
 router.get("/:taskId/comments", verifyJWT, restrictTo("admin", "user"), getTaskComments);
-router.get("/", verifyJWT, restrictTo("user"), getMyTasks);
+router.get("/", verifyJWT, restrictTo("user", "admin"), getMyTasks);
 router.patch("/:taskId", verifyJWT,restrictTo("admin"), updateTask);
 router.delete("/:taskId", restrictTo("admin"), verifyJWT, deleteTask);
 
