@@ -14,9 +14,9 @@ const router = express.Router();
 
 router.post("/super-admin", registerSuperAdmin);
 router.post("/", verifyJWT, restrictTo("admin"), validate(createUserSchema),checkSubscriptionPlan, createUser);
-router.get("/", verifyJWT, restrictTo("superAdmin", "admin"), validate(paginationSchema, "query"), getUsers);
-router.get("/:id", verifyJWT, restrictTo("superAdmin", "admin", "user"), getUserById);
+router.get("/", verifyJWT, restrictTo("admin"), validate(paginationSchema, "query"), getUsers);
+router.get("/:id", verifyJWT, restrictTo("admin"), getUserById);
 router.patch("/:id", verifyJWT, restrictTo("admin", "user"), validate(updateUserSchema), updateUser);
-router.delete("/:id", verifyJWT, restrictTo("admin", "user"), deleteUser);
+router.delete("/:id", verifyJWT, restrictTo("admin"), deleteUser);
 
 export default router;

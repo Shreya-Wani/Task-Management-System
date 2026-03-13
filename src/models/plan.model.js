@@ -29,11 +29,6 @@ const planSchema = new mongoose.Schema(
       required: true
     },
 
-    maxTasks: {
-      type: Number,
-      required: true
-    },
-
     isUnlimited: {
       type: Boolean,
       default: false

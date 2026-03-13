@@ -11,6 +11,7 @@ import { generateOTP } from "../utils/generateOTP.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import Plan from "../models/plan.model.js";
 import stripe from "../utils/stripe.js";
+import mongoose from "mongoose";
 
 export const registerAdminService = async (data) => {
 
@@ -34,61 +35,76 @@ export const registerAdminService = async (data) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    //create admin
-    const admin = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        role: "admin",
-        status: "inactive"
-    });
+    // START TRANSACTION
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    //create company with adminId
-    const company = await Company.create({
-        name: companyName,
-        adminId: admin._id,
-        planId: planId,
-        paymentStatus: "pending",
-        isActive: false
-    });
+    try {
 
-    const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        mode: "payment",
+        const admin = await User.create([{
+            name,
+            email,
+            password: hashedPassword,
+            role: "admin",
+            status: "inactive"
+        }], { session });
 
-        line_items: [
-            {
-                price_data: {
-                    currency: "inr",
-                    product_data: {
-                        name: plan.name
+        const company = await Company.create([{
+            name: companyName,
+            adminId: admin[0]._id,
+            planId: planId,
+            paymentStatus: "pending",
+            isActive: false
+        }], { session });
+
+        admin[0].companyId = company[0]._id;
+        await admin[0].save({ session });
+
+        await session.commitTransaction();
+        session.endSession();
+
+        const stripeSession = await stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            mode: "payment",
+
+            line_items: [
+                {
+                    price_data: {
+                        currency: "inr",
+                        product_data: {
+                            name: plan.name
+                        },
+                        unit_amount: plan.price * 100
                     },
-                    unit_amount: plan.price * 100
-                },
-                quantity: 1
+                    quantity: 1
+                }
+            ],
+
+            success_url: "http://localhost:5000/payment-success",
+            cancel_url: "http://localhost:5000/payment-failed",
+
+            metadata: {
+                companyId: company[0]._id.toString(),
+                adminId: admin[0]._id.toString(),
+                planId: plan._id.toString()
             }
-        ],
+        });
 
-        success_url: "http://localhost:5000/payment-success",
-        cancel_url: "http://localhost:5000/payment-failed",
+        admin[0].password = undefined;
 
-        metadata: {
-            companyId: company._id.toString(),
-            adminId: admin._id.toString(),
-            planId: plan._id.toString()
-        }
-    });
+        return {
+            company: company[0],
+            admin: admin[0],
+            checkout_url: stripeSession.url
+        };
 
-    admin.companyId = company._id;
-    await admin.save();
+    } catch (error) {
 
-    admin.password = undefined;
+        await session.abortTransaction();
+        session.endSession();
+        throw error;
 
-    return {
-        company,
-        admin,
-        checkout_url: session.url
-    };
+    }
 };
 
 export const loginService = async (email, password) => {
