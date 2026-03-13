@@ -1,7 +1,7 @@
 import express from "express";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import restrictTo from "../middlewares/role.middleware.js";
-import { registerSuperAdmin, createAdmin, createUser, getUsers, getUserById, updateUser, deleteUser } from "../controllers/user.controller.js";
+import { registerSuperAdmin, createUser, getUsers, getUserById, updateUser, deleteUser } from "../controllers/user.controller.js";
 import validate from "../middlewares/validate.middleware.js";
 import {
     createUserSchema,
