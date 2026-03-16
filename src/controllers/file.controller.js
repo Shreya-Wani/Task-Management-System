@@ -1,4 +1,4 @@
-import { uploadFileService, getTaskFilesService } from "../services/file.service.js";
+import { uploadFileService, getTaskFilesService, deleteFileService } from "../services/file.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 export const uploadFile = asyncHandler(async (req, res) => {
@@ -33,4 +33,16 @@ export const getTaskFiles = asyncHandler(async (req, res) => {
         data: files
     });
 
+});
+
+export const deleteFile = asyncHandler(async (req, res) => {
+
+    const { fileId } = req.params;
+
+    await deleteFileService(fileId, req.user);
+
+    res.status(200).json({
+        success: true,
+        message: "File deleted successfully"
+    });
 });

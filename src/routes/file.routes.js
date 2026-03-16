@@ -1,6 +1,6 @@
 import express from "express";
 import upload from "../middlewares/upload.middleware.js";
-import { uploadFile, getTaskFiles } from "../controllers/file.controller.js";
+import { uploadFile, getTaskFiles, deleteFile } from "../controllers/file.controller.js";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import restrictTo from "../middlewares/role.middleware.js";
 
@@ -19,6 +19,13 @@ router.get(
     verifyJWT,
     restrictTo("admin", "user"),
     getTaskFiles
+);
+
+router.delete(
+  "/:fileId",
+  verifyJWT,
+  restrictTo("admin", "user"),
+  deleteFile
 );
 
 export default router;
