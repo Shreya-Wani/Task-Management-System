@@ -1,4 +1,4 @@
-import { uploadFileService } from "../services/file.service.js";
+import { uploadFileService, getTaskFilesService } from "../services/file.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 export const uploadFile = asyncHandler(async (req, res) => {
@@ -9,12 +9,28 @@ export const uploadFile = asyncHandler(async (req, res) => {
     const uploadedFile = await uploadFileService(
         file,
         taskId,
-        req.user._id
+        req.user
     );
 
     res.status(201).json({
         success: true,
         data: uploadedFile
     });
-    
+
+});
+
+export const getTaskFiles = asyncHandler(async (req, res) => {
+
+    const { taskId } = req.params;
+
+    const files = await getTaskFilesService(
+        taskId,
+        req.user
+    );
+
+    res.status(200).json({
+        success: true,
+        data: files
+    });
+
 });

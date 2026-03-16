@@ -2,18 +2,17 @@ import File from "../models/file.model.js";
 import ApiError from "../utils/ApiError.js";
 import cloudinary from "../utils/cloudinary.js";
 import streamifier from "streamifier";
+import { checkProjectFileAccess } from "../utils/checkProjectFileAccess.js";
+import Task from "../models/task.model.js";
 
 export const uploadFileService = async (file, taskId, user) => {
-
     const task = await Task.findById(taskId);
 
-    if (!task) {
+    if (!task || task.isDeleted) {
         throw new ApiError(404, "Task not found");
     }
 
-    if (task.companyId.toString() !== user.companyId.toString()) {
-        throw new ApiError(403, "Unauthorized task access");
-    }
+    await checkProjectFileAccess(task, user);
 
     if (!file) {
         throw new ApiError(400, "File is Required");
@@ -50,4 +49,20 @@ export const uploadFileService = async (file, taskId, user) => {
     });
 
     return savedFile;
+};
+
+export const getTaskFilesService = async (taskId, user) => {
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+        throw new ApiError(404, "Task not found");
+    }
+
+    await checkProjectFileAccess(task, user);
+
+    const files = await File.find({ taskId })
+        .populate("uploadedBy", "name email");
+
+    return files;
 };
