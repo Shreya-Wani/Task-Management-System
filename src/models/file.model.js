@@ -5,8 +5,13 @@ const fileSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Task"
     },
+
     fileName: String,
-    filePath: String,
+
+    fileUrl: String,
+
+    publicId: String,
+
     uploadedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
