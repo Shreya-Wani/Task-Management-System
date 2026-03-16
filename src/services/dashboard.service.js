@@ -52,13 +52,37 @@ export const getAdminDashboardService = async (user) => {
         isDeleted: false
     });
 
+    const recentTasks = await Task.find({
+        companyId,
+        isDeleted: false
+    })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .populate("assignedTo", "name email")
+    .populate("projectId", "name")
+    .select("taskId title status priority assignedTo projectId createdAt");
+
+    const users = await User.find({
+        companyId,
+        role: "user",
+        isDeleted: false
+    }).select("name email createdAt");
+
+    const projects = await Project.find({
+        companyId,
+        isDeleted: false
+    }).select("name description createdAt");
+
     return {
         totalUsers,
         totalProjects,
         totalTasks,
-        tasksStatusSummary: summary
+        tasksStatusSummary: summary,
+        recentTasks,
+        users,
+        projects
     };
-}
+};
 
 export const getSuperadminDashboardService = async () => {
 
