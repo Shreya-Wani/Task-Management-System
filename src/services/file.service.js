@@ -24,7 +24,7 @@ export const uploadFileService = async (file, taskId, user) => {
             const stream = cloudinary.uploader.upload_stream(
                 {
                     folder: "task-files",
-                    resource_type: "auto"
+                    resource_type: "raw"
                 },
                 (error, result) => {
 
@@ -90,4 +90,26 @@ export const deleteFileService = async (fileId, user) => {
     await File.findByIdAndDelete(fileId);
 
     return true;
-}
+};
+
+export const getFileService = async (fileId, user) => {
+
+    const file = await File.findById(fileId);
+
+    if (!file) {
+        throw new ApiError(404, "File not found");
+    }
+
+    const task = await Task.findById(file.taskId);
+
+    if (!task) {
+        throw new ApiError(404, "Task not found");
+    }
+
+    await checkProjectFileAccess(task, user);
+
+    return {
+        fileName: file.fileName,
+        fileUrl: file.fileUrl
+    };
+};
