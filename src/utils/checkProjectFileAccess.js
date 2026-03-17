@@ -1,5 +1,5 @@
 import ApiError from "../utils/ApiError.js";
-import Project from "../models/project.model.js";
+import Project from "../modules/project/project.model.js";
 
 export const checkProjectFileAccess = async (task, user) => {
 

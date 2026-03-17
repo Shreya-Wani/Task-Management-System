@@ -10,15 +10,15 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./src/db/index.js";
 import errorHandler from "./src/middlewares/error.middleware.js";
 
-import authRoutes from "./src/routes/auth.routes.js";
-import companyRoutes from "./src/routes/company.routes.js";
-import userRoutes from "./src/routes/user.routes.js";
-import planRoutes from "./src/routes/plan.routes.js";
-import webhookRoutes from "./src/routes/webhook.routes.js";
-import projectRoutes from "./src/routes/project.routes.js";
-import taskRoutes from "./src/routes/task.routes.js";
-import dashboardRoutes from "./src/routes/dashboard.routes.js";
-import fileRoutes from "./src/routes/file.routes.js";
+import authRoutes from "./src/modules/auth/auth.routes.js";
+import companyRoutes from "./src/modules/company/company.routes.js";
+import userRoutes from "./src/modules/user/user.routes.js";
+import planRoutes from "./src/modules/plan/plan.routes.js";
+import webhookRoutes from "./src/modules/webhook/webhook.routes.js";
+import projectRoutes from "./src/modules/project/project.routes.js";
+import taskRoutes from "./src/modules/task/task.routes.js";
+import dashboardRoutes from "./src/modules/dashboard/dashboard.routes.js";
+import fileRoutes from "./src/modules/file/file.routes.js";
 
 import planExpiryCron from "./src/cron/planExpiry.cron.js";
 

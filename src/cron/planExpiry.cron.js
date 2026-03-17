@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import Company from "../models/company.model.js";
+import Company from "../modules/company/company.model.js";
 
 const planExpiryCron = () => {
 

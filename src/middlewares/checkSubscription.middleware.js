@@ -1,4 +1,4 @@
-import Company from "../models/company.model.js";
+import Company from "../modules/company/company.model.js";
 import ApiError from "../utils/ApiError.js";
 
 const checkSubscriptionPlan = async (req, res, next) => {
