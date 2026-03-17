@@ -1,4 +1,4 @@
-import { uploadFileService, getTaskFilesService, deleteFileService, getFileService } from "../services/file.service.js";
+import { uploadFileService, getTaskFilesService, deleteFileService, getFileService, downloadFileService } from "../services/file.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 export const uploadFile = asyncHandler(async (req, res) => {
@@ -57,5 +57,15 @@ export const getFile = asyncHandler(async (req, res) => {
         success: true,
         data: file
     });
+
+});
+
+export const downloadFile = asyncHandler(async (req, res) => {
+
+    const { fileId } = req.params;
+
+    const fileUrl = await downloadFileService(fileId, req.user);
+
+    return res.redirect(fileUrl);
 
 });

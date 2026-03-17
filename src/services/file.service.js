@@ -113,3 +113,22 @@ export const getFileService = async (fileId, user) => {
         fileUrl: file.fileUrl
     };
 };
+
+export const downloadFileService = async (fileId, user) => {
+
+    const file = await File.findById(fileId);
+
+    if (!file) {
+        throw new ApiError(404, "File not found");
+    }
+
+    const task = await Task.findById(file.taskId);
+
+    if (!task) {
+        throw new ApiError(404, "Task not found");
+    }
+
+    await checkProjectFileAccess(task, user);
+
+    return file.fileUrl;
+};
