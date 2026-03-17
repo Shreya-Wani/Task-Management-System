@@ -25,7 +25,8 @@ export const getTaskFiles = asyncHandler(async (req, res) => {
 
     const files = await getTaskFilesService(
         taskId,
-        req.user
+        req.user,
+        req.query
     );
 
     res.status(200).json({

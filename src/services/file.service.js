@@ -4,6 +4,7 @@ import cloudinary from "../utils/cloudinary.js";
 import streamifier from "streamifier";
 import { checkProjectFileAccess } from "../utils/checkProjectFileAccess.js";
 import Task from "../models/task.model.js";
+import { getPagination } from "../utils/pagination.js";
 
 export const uploadFileService = async (file, taskId, user) => {
     const task = await Task.findById(taskId);
@@ -51,7 +52,7 @@ export const uploadFileService = async (file, taskId, user) => {
     return savedFile;
 };
 
-export const getTaskFilesService = async (taskId, user) => {
+export const getTaskFilesService = async (taskId, user, query) => {
 
     const task = await Task.findById(taskId);
 
@@ -61,10 +62,25 @@ export const getTaskFilesService = async (taskId, user) => {
 
     await checkProjectFileAccess(task, user);
 
-    const files = await File.find({ taskId })
-        .populate("uploadedBy", "name email");
+    const { page, limit, skip, sort } = getPagination(query);
 
-    return files;
+    const files = await File.find({ taskId })
+        .populate("uploadedBy", "name email")
+        .sort(sort)
+        .skip(skip)
+        .limit(limit);
+
+    const totalFiles = await File.countDocuments({ taskId });
+
+    return {
+        files,
+        pagination: {
+            totalFiles,
+            currentPage: page,
+            totalPages: Math.ceil(totalFiles / limit),
+            limit
+        }
+    };
 };
 
 export const deleteFileService = async (fileId, user) => {
