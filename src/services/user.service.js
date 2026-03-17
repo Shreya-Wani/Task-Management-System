@@ -79,14 +79,28 @@ export const createUserService = async (data, adminUser) => {
     });
 
     try {
-        await sendEmail({
-            to: email,
-            subject: "Welcome to Task Management System",
-            text: `Hello ${name}, your account has been created successfully.`
-        });
-    } catch (error) {
-        console.log("Email sending failed:", error.message);
-    }
+    await sendEmail({
+        to: email,
+        subject: "Welcome to Task Management System",
+        text: `
+Hello ${name},
+
+Your account has been created by Admin: ${adminUser.name}.
+
+Login Credentials:
+Email: ${email}
+Password: ${password}
+
+Please login and change your password after your first login.
+
+Regards,
+${adminUser.name}
+Task Management System
+`
+    });
+} catch (error) {
+    console.log("Email sending failed:", error.message);
+}
 
     return user;
 };
