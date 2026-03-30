@@ -56,11 +56,11 @@ export const getAdminDashboardService = async (user) => {
         companyId,
         isDeleted: false
     })
-    .sort({ createdAt: -1 })
-    .limit(5)
-    .populate("assignedTo", "name email")
-    .populate("projectId", "name")
-    .select("taskId title status priority assignedTo projectId createdAt");
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate("assignedTo", "name email")
+        .populate("projectId", "name")
+        .select("taskId title status priority assignedTo projectId createdAt");
 
     const users = await User.find({
         companyId,
@@ -96,37 +96,37 @@ export const getSuperadminDashboardService = async () => {
         isDeleted: false,
         isActive: true
     })
-    .populate({
-        path: "adminId",
-        select: "name email"
-    })
-    .populate({
-        path: "planId",
-        select: "name price duration"
-    })
-    .select("name paymentStatus isActive createdAt");
+        .populate({
+            path: "adminId",
+            select: "name email"
+        })
+        .populate({
+            path: "planId",
+            select: "name price duration"
+        })
+        .select("name paymentStatus isActive createdAt");
 
     // Expired companies with details
     const expiredCompanies = await Company.find({
         isDeleted: false,
         isActive: false
     })
-    .populate({
-        path: "adminId",
-        select: "name email"
-    })
-    .populate({
-        path: "planId",
-        select: "name price duration"
-    })
-    .select("name paymentStatus isActive createdAt");
+        .populate({
+            path: "adminId",
+            select: "name email"
+        })
+        .populate({
+            path: "planId",
+            select: "name price duration"
+        })
+        .select("name paymentStatus isActive createdAt");
 
     // Total users with details
     const users = await User.find({
         role: "user",
         isDeleted: false
     })
-    .select("name email companyId createdAt");
+        .select("name email companyId createdAt");
 
     const totalUsers = users.length;
 
@@ -140,3 +140,67 @@ export const getSuperadminDashboardService = async () => {
         users
     };
 };
+
+export const getUserDashBoardServie = async (user) => {
+
+    const userId = user._id;
+    const companyId = user.companyId;
+
+    const taskStatus = await Task.aggregate([
+        {
+            $match: {
+                assignedTo: userId,
+                isDeleted: false
+            }
+        },
+        {
+            $group: {
+                _id: "$status",
+                count: { $sum: 1 }
+            }
+        }
+    ]);
+
+    const summary = {
+        "to-do": 0,
+        "in-progress": 0,
+        "done": 0,
+        "testing": 0,
+        "qa-verified": 0,
+        "re-open": 0,
+        "deployment": 0
+    };
+
+    taskStatus.forEach(stat => {
+        summary[stat._id] = stat.count;
+    });
+
+    const totalTasks = await Task.countDocuments({
+        assignedTo: userId,
+        isDeleted: false
+    });
+
+    const projects = await Project.find({
+        assignedTo: userId,
+        isDeleted: false
+    }).select("name description createdAt");
+
+    const totalProjects = projects.length;
+
+    const recentTasks = await Task.find({
+        assignedTo: userId,
+        isDeleted: false
+    })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate("projectId", "name")
+        .select("title status priority createdAt");
+
+    return {
+        totalTasks,
+        totalProjects,
+        tasksStatusSummary: summary,
+        recentTasks,
+        projects
+    };
+}

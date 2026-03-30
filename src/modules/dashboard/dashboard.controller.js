@@ -1,6 +1,6 @@
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiResponse from "../../utils/ApiResponse.js";
-import { getAdminDashboardService, getSuperadminDashboardService } from "../dashboard/dashboard.service.js";
+import { getAdminDashboardService, getSuperadminDashboardService, getUserDashBoardServie } from "../dashboard/dashboard.service.js";
 
 export const getAdminDashboard = asyncHandler(async (req, res) => {
 
@@ -30,4 +30,20 @@ export const getSuperAdminDashboard = asyncHandler(async (req, res) => {
                 "SuperAdmin dashboard fetched successfully"
             )
         );
+});
+
+export const getUserDashboard = asyncHandler(async (req, res) => {
+
+    const dashboardData = await getUserDashBoardServie(req.user);
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                dashboardData,
+                "User dashboard fetched successfully"
+            )
+        );
 })
+
